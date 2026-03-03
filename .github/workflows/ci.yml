@@ -1,0 +1,102 @@
+# =============================================================================
+# Pipeline d'intégration continue pour GbeTo.
+#
+# Déclencheurs :
+#   - Push sur main ou develop
+#   - Pull request vers main
+#
+# Étapes :
+#   1. Lint        — vérification du style (flake8)
+#   2. Type check  — vérification des types (mypy, optionnel)
+#   3. Tests       — tests unitaires (pytest)
+#
+# Note : les tests d'entraînement (trainer.py) ne sont PAS inclus
+# dans le CI — ils nécessitent un GPU et des heures de calcul.
+# Le CI couvre uniquement les modules data et evaluate.
+#
+# Auteur : Kodjo Jean DEGBEVI
+# =============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  # ---------------------------------------------------------------------------
+  # Job 1 — Lint
+  # ---------------------------------------------------------------------------
+  lint:
+    name: Lint (flake8)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+
+      - name: Configuration de Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Installation de flake8
+        run: pip install flake8
+
+      - name: Exécution de flake8
+        run: |
+          flake8 src/ tests/ app.py \
+            --max-line-length=100 \
+            --ignore=E203,W503 \
+            --exclude=__pycache__,.git
+
+  # ---------------------------------------------------------------------------
+  # Job 2 — Tests unitaires
+  # ---------------------------------------------------------------------------
+  tests:
+    name: Tests (pytest)
+    runs-on: ubuntu-latest
+    needs: lint  # Lance les tests seulement si le lint passe
+
+    steps:
+      - name: Checkout du dépôt
+        uses: actions/checkout@v4
+
+      - name: Configuration de Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Mise en cache des dépendances pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Installation des dépendances
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Exécution des tests unitaires
+        run: |
+          pytest tests/test_filter.py tests/test_metrics.py \
+            -v \
+            --tb=short \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml
+
+      - name: Upload du rapport de couverture
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 7

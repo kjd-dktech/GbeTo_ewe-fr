@@ -1,0 +1,10 @@
+.ssh/
+*.env
+ewefrnlpvenv/
+*tmp
+.pip_tmp
+docs/
+logs/
+checkpoints/
+data/raw/
+models/
