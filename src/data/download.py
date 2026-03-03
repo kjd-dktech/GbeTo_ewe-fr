@@ -25,6 +25,7 @@ Auteur : Kodjo Jean DEGBEVI
 import argparse
 import logging
 import os
+import json
 import sys
 from pathlib import Path
 
@@ -53,9 +54,6 @@ SPLITS = ["train", "validation", "test"]
 
 # Langcodes cibles dans AfroLingu-MT
 AFROLINGU_LANGCODES = {"ewe-fra", "fra-ewe"}
-
-# Subset MAFAND pour éwé-français
-MAFAND_SUBSET = "fr-ewe"
 
 # Colonnes du format unifié
 UNIFIED_COLUMNS = ["source", "target", "direction", "origin"]
@@ -147,11 +145,11 @@ def load_afrolingu(split: str, hf_token: str) -> pd.DataFrame:
 
 def load_mafand(split: str) -> pd.DataFrame:
     """
-    Charge un split de masakhane/mafand (subset fr-ewe) et retourne
+    Charge un split de LAFAND-MT (fr-ewe) depuis GitHub et retourne
     les paires dans les deux directions dans le format unifié.
 
-    MAFAND ne contient que des paires fr→ewe dans son subset 'fr-ewe'.
-    On génère les deux directions pour cohérence avec AfroLingu-MT.
+    Source : masakhane-io/lafand-mt (remplace masakhane/mafand
+    qui utilise un loading script déprécié par HuggingFace)
 
     Args:
         split : 'train', 'validation' ou 'test'
@@ -159,37 +157,52 @@ def load_mafand(split: str) -> pd.DataFrame:
     Returns:
         DataFrame avec colonnes [source, target, direction, origin]
     """
-    logger.info(f"Chargement MAFAND [{split}] ...")
+    logger.info(f"Chargement LAFAND-MT [fr-ewe | {split}] ...")
+
+    # Correspondance split → nom de fichier GitHub
+    file_map = {
+        "train":      "train.json",
+        "validation": "dev.json",
+        "test":       "test.json",
+    }
+    filename = file_map[split]
+    url = (
+        f"https://raw.githubusercontent.com/masakhane-io/"
+        f"lafand-mt/main/data/json_files/fr-ewe/{filename}"
+    )
 
     try:
-        ds = load_dataset(
-            "masakhane/mafand",
-            MAFAND_SUBSET,
-            split=split,
-        )
+        import requests
+        response = requests.get(url, timeout=30)
+        response.raise_for_status()
     except Exception as e:
         logger.error(
-            f"Impossible de charger MAFAND [{split}].\n"
+            f"Impossible de télécharger LAFAND-MT [{split}].\n"
+            f"URL : {url}\n"
             f"Erreur : {e}"
         )
         sys.exit(1)
 
     records = []
-    for row in tqdm(ds, desc=f"  MAFAND [{split}]", unit="ex"):
-        # Structure MAFAND : {'translation': STRUCT(ewe VARCHAR, fr VARCHAR)}
-        translation = row["translation"]
-        ewe_text = translation["ewe"].strip()
-        fr_text  = translation["fr"].strip()
+    for line in response.text.strip().split("\n"):
+        if not line.strip():
+            continue
+        try:
+            row         = json.loads(line)
+            translation = row["translation"]
+            fr_text     = translation["fr"].strip()
+            ewe_text    = translation["ewe"].strip()
+        except (json.JSONDecodeError, KeyError):
+            continue
 
-        # Direction fr → ewe
+        # LAFAND-MT ne fournit que des paires fr→ewe.
+        # On génère les deux directions pour entraîner un modèle bidirectionnel.
         records.append({
             "source":    fr_text,
             "target":    ewe_text,
             "direction": "fra-ewe",
             "origin":    "mafand",
         })
-
-        # Direction ewe → fr (augmentation symétrique)
         records.append({
             "source":    ewe_text,
             "target":    fr_text,
@@ -198,7 +211,7 @@ def load_mafand(split: str) -> pd.DataFrame:
         })
 
     df = pd.DataFrame(records, columns=UNIFIED_COLUMNS)
-    _log_split_stats(df, "mafand", split)
+    _log_split_stats(df, "lafand-mt", split)
     return df
 
 
