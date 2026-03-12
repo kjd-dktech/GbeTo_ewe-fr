@@ -324,10 +324,10 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--hf_token",
         type=str,
-        default=os.environ.get("HF_TOKEN", ""),
+        default=os.environ.get("HF_TOKEN_READ", ""),
         help=(
             "Token HuggingFace (lecture). "
-            "Peut aussi être défini via la variable d'environnement HF_TOKEN."
+            "Peut aussi être défini via la variable d'environnement HF_TOKEN_READ."
         ),
     )
     return parser.parse_args()
@@ -339,7 +339,7 @@ def main() -> None:
     if not args.hf_token:
         logger.error(
             "Token HuggingFace manquant. "
-            "Définissez HF_TOKEN en variable d'environnement "
+            "Définissez HF_TOKEN_READ en variable d'environnement "
             "ou passez --hf_token TOKEN."
         )
         sys.exit(1)

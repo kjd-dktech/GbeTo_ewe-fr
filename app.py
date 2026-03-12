@@ -106,7 +106,7 @@ def load_model() -> tuple:
 
     tokenizer = AutoTokenizer.from_pretrained(
         model_path,
-        use_auth_token=hf_token,
+        token=hf_token,
     )
 
     model = AutoModelForSeq2SeqLM.from_pretrained(
