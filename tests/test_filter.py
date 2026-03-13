@@ -96,7 +96,7 @@ class TestNormalizeUnicode:
         Vérifie que les caractères spéciaux éwé (ɖ, ƒ, ŋ, ɣ, ɔ, ɛ, ʋ)
         sont préservés après normalisation NFC.
         """
-        ewe_text = "ɖevi ƒe ŋkɔ nye ɣali eye eƒe nɔnɔme nyuie"
+        ewe_text = "ɖevi ƒe ŋkɔ nye ɣali, ɛsi ʋoa eƒe nɔnɔme nyuie"
         df = _make_df([{
             "source":    ewe_text,
             "target":    "Le nom de l'enfant est Gali et sa vie est bonne.",
