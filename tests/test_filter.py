@@ -22,8 +22,6 @@ import pytest
 from src.data.filter import (
     MIN_TOKENS,
     MAX_TOKENS,
-    MIN_RATIO,
-    MAX_RATIO,
     filter_split,
     step_deduplicate,
     step_filter_length,
@@ -98,7 +96,7 @@ class TestNormalizeUnicode:
         Vérifie que les caractères spéciaux éwé (ɖ, ƒ, ŋ, ɣ, ɔ, ɛ, ʋ)
         sont préservés après normalisation NFC.
         """
-        ewe_text = "ɖevi ƒe ŋkɔ nye ɣali eye eƒe nɔnɔme nyuie"
+        ewe_text = "ɖevi ƒe ŋkɔ nye ɣali, ɛsi ʋoa eƒe nɔnɔme nyuie"
         df = _make_df([{
             "source":    ewe_text,
             "target":    "Le nom de l'enfant est Gali et sa vie est bonne.",

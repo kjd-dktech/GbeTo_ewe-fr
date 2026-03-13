@@ -1,10 +1,13 @@
 .ssh/
 *.env
+*.pyc
 ewefrnlpvenv/
 *tmp
 .pip_tmp
 docs/
 logs/
 checkpoints/
+final_model/
 data/raw/
-models/
+*cache/
+wandb/

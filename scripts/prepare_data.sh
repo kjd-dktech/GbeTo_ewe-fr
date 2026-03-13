@@ -10,7 +10,7 @@
 # Résultat : data/processed/train.csv, val.csv, test.csv
 #
 # Prérequis :
-#   - HF_TOKEN défini dans .env ou en variable d'environnement
+#   - HF_TOKEN_READ défini dans .env ou en variable d'environnement
 #   - Conditions AfroLingu-MT acceptées sur HuggingFace
 #   - Dépendances installées : pip install -r requirements.txt
 #

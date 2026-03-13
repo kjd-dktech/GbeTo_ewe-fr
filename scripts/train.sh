@@ -49,13 +49,19 @@ log_step() {
 # ---------------------------------------------------------------------------
 TRAIN_FILE="data/processed/train.csv"
 VAL_FILE="data/processed/val.csv"
-OUTPUT_DIR="outputs/checkpoints"
+OUTPUT_DIR="/content/checkpoints_local"
+DRIVE_CHECKPOINT_DIR="outputs/checkpoints"
+FINAL_DIR="outputs/final_model"
+HF_REPO_ID="kjd-dktech/gbeto-ewe-french"
+NO_PUSH_TO_HUB=""
 MODEL_NAME="facebook/nllb-200-distilled-600M"
 LEARNING_RATE="5e-5"
-BATCH_SIZE="8"
-GRAD_ACCUM="4"
+BATCH_SIZE="4"
+GRAD_ACCUM="8"
 EPOCHS="10"
 WARMUP_STEPS="500"
+WARMUP_EPOCHS="3"
+KEEP_LOCAL="3"
 NUM_BEAMS="4"
 SEED="42"
 REPORT_TO="wandb"
@@ -64,18 +70,24 @@ NO_FP16=""
 # Parsing des arguments optionnels
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --train_file)    TRAIN_FILE="$2";    shift 2 ;;
-        --val_file)      VAL_FILE="$2";      shift 2 ;;
-        --output_dir)    OUTPUT_DIR="$2";    shift 2 ;;
-        --learning_rate) LEARNING_RATE="$2"; shift 2 ;;
-        --batch_size)    BATCH_SIZE="$2";    shift 2 ;;
-        --grad_accum)    GRAD_ACCUM="$2";    shift 2 ;;
-        --epochs)        EPOCHS="$2";        shift 2 ;;
-        --warmup_steps)  WARMUP_STEPS="$2";  shift 2 ;;
-        --num_beams)     NUM_BEAMS="$2";     shift 2 ;;
-        --seed)          SEED="$2";          shift 2 ;;
-        --report_to)     REPORT_TO="$2";     shift 2 ;;
-        --no_fp16)       NO_FP16="--no_fp16"; shift 1 ;;
+        --train_file)           TRAIN_FILE="$2";           shift 2 ;;
+        --val_file)             VAL_FILE="$2";             shift 2 ;;
+        --output_dir)           OUTPUT_DIR="$2";           shift 2 ;;
+        --drive_checkpoint_dir) DRIVE_CHECKPOINT_DIR="$2"; shift 2 ;;
+        --final_dir)            FINAL_DIR="$2";            shift 2 ;;
+        --warmup_epochs)        WARMUP_EPOCHS="$2";        shift 2 ;;
+        --keep_local)           KEEP_LOCAL="$3";           shift 2 ;;
+        --hf_repo_id)           HF_REPO_ID="$2";           shift 2 ;;
+        --no_push_to_hub)       NO_PUSH_TO_HUB="--no_push_to_hub"; shift 1 ;;
+        --learning_rate)        LEARNING_RATE="$2";        shift 2 ;;
+        --batch_size)           BATCH_SIZE="$2";           shift 2 ;;
+        --grad_accum)           GRAD_ACCUM="$2";           shift 2 ;;
+        --epochs)               EPOCHS="$2";               shift 2 ;;
+        --warmup_steps)         WARMUP_STEPS="$2";         shift 2 ;;
+        --num_beams)            NUM_BEAMS="$2";            shift 2 ;;
+        --seed)                 SEED="$2";                 shift 2 ;;
+        --report_to)            REPORT_TO="$2";            shift 2 ;;
+        --no_fp16)              NO_FP16="--no_fp16";       shift 1 ;;
         *)
             log_error "Argument inconnu : $1"
             echo "Usage : bash scripts/train.sh [--epochs N] [--batch_size N] ..."
@@ -154,13 +166,20 @@ log_step "DÉTECTION DU MODE D'ENTRAÎNEMENT"
 
 CHECKPOINT_EXISTS=false
 if [[ -d "${OUTPUT_DIR}" ]]; then
-    # Chercher des dossiers checkpoint-XXXX
     if ls "${OUTPUT_DIR}"/checkpoint-* 1> /dev/null 2>&1; then
         CHECKPOINT_EXISTS=true
         LAST_CHECKPOINT=$(ls -d "${OUTPUT_DIR}"/checkpoint-* 2>/dev/null | sort -t'-' -k2 -n | tail -1)
-        log_warning "Checkpoints détectés dans ${OUTPUT_DIR}/"
+        log_warning "Checkpoints locaux détectés dans ${OUTPUT_DIR}/"
         log_warning "→ REPRISE depuis : ${LAST_CHECKPOINT}"
-        log_warning "  (poids, optimizer, scheduler et step courant seront restaurés)"
+    fi
+fi
+
+# Vérifier aussi si un zip Drive existe (reprise possible via registry)
+if [[ "${CHECKPOINT_EXISTS}" == "false" ]]; then
+    if ls "${DRIVE_CHECKPOINT_DIR}"/checkpoint-*.zip 1> /dev/null 2>&1; then
+        log_warning "Zip Drive détecté dans ${DRIVE_CHECKPOINT_DIR}/"
+        log_warning "→ Reprise depuis Drive possible (via registry)"
+        CHECKPOINT_EXISTS=true
     fi
 fi
 
@@ -183,11 +202,13 @@ log_info "Batch / device   : ${BATCH_SIZE}"
 log_info "Gradient accum   : ${GRAD_ACCUM}  →  batch effectif : ${EFFECTIVE_BATCH}"
 log_info "Epochs max       : ${EPOCHS}"
 log_info "Warmup steps     : ${WARMUP_STEPS}"
+log_info "Warmup epochs    : ${WARMUP_EPOCHS} (pas de Drive avant cette epoch)"
+log_info "Keep local       : ${KEEP_LOCAL} meilleurs checkpoints locaux"
 log_info "Beam search      : ${NUM_BEAMS}"
 log_info "Seed             : ${SEED}"
 log_info "fp16             : $([ -z "${NO_FP16}" ] && echo 'oui' || echo 'non')"
 log_info "Tracking         : ${REPORT_TO}"
-log_info "Sortie           : ${OUTPUT_DIR}"
+log_info "Checkpoints      : ${OUTPUT_DIR} (local) → ${DRIVE_CHECKPOINT_DIR} (Drive, zip)"
 echo ""
 
 # ---------------------------------------------------------------------------
@@ -201,18 +222,24 @@ log_info "Début : $(date '+%Y-%m-%d %H:%M:%S')"
 echo ""
 
 python -m src.model.trainer \
-    --train_file    "${TRAIN_FILE}"    \
-    --val_file      "${VAL_FILE}"      \
-    --output_dir    "${OUTPUT_DIR}"    \
-    --learning_rate "${LEARNING_RATE}" \
-    --batch_size    "${BATCH_SIZE}"    \
-    --grad_accum    "${GRAD_ACCUM}"    \
-    --epochs        "${EPOCHS}"        \
-    --warmup_steps  "${WARMUP_STEPS}"  \
-    --num_beams     "${NUM_BEAMS}"     \
-    --seed          "${SEED}"          \
-    --report_to     "${REPORT_TO}"     \
-    ${NO_FP16}
+    --train_file            "${TRAIN_FILE}"            \
+    --val_file              "${VAL_FILE}"              \
+    --output_dir            "${OUTPUT_DIR}"            \
+    --drive_checkpoint_dir  "${DRIVE_CHECKPOINT_DIR}"  \
+    --final_dir             "${FINAL_DIR}"             \
+    --warmup_epochs         "${WARMUP_EPOCHS}"         \
+    --keep_local            "${KEEP_LOCAL}"            \
+    --hf_repo_id            "${HF_REPO_ID}"            \
+    --learning_rate         "${LEARNING_RATE}"         \
+    --batch_size            "${BATCH_SIZE}"            \
+    --grad_accum            "${GRAD_ACCUM}"            \
+    --epochs                "${EPOCHS}"                \
+    --warmup_steps          "${WARMUP_STEPS}"          \
+    --num_beams             "${NUM_BEAMS}"             \
+    --seed                  "${SEED}"                  \
+    --report_to             "${REPORT_TO}"             \
+    ${NO_FP16}                                         \
+    ${NO_PUSH_TO_HUB}
 
 # ---------------------------------------------------------------------------
 # Bilan
@@ -230,7 +257,7 @@ echo -e "${BOLD}${GREEN}========================================================
 echo ""
 log_success "Durée totale : ${ELAPSED_MIN}m ${ELAPSED_SEC}s"
 echo ""
-log_info "Meilleur modèle : ${OUTPUT_DIR}/best_model/"
+log_info "Meilleur modèle : ${FINAL_DIR}"
 log_info "Métriques       : outputs/final_metrics.json"
 if [[ "${REPORT_TO}" == "wandb" ]]; then
     log_info "Dashboard W&B   : https://wandb.ai"

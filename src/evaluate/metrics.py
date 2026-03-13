@@ -239,13 +239,13 @@ def evaluate(
     }
 
     # Logging des résultats
-    logger.info(f"\n{'='*50}")
+    logger.info(f"\n{'=' * 50}")
     logger.info(f"MÉTRIQUES D'ÉVALUATION — {split_name.upper()}")
-    logger.info(f"{'='*50}")
+    logger.info(f"{'=' * 50}")
     logger.info(f"  Échantillons : {len(hypotheses):,}")
     logger.info(f"  BLEU         : {bleu:.2f}")
     logger.info(f"  chrF         : {chrf:.2f}")
-    logger.info(f"{'='*50}")
+    logger.info(f"{'=' * 50}")
 
     # Interprétation du score BLEU
     if bleu >= 20:

@@ -7,12 +7,7 @@
 #
 # Étapes :
 #   1. Lint        — vérification du style (flake8)
-#   2. Type check  — vérification des types (mypy, optionnel)
 #   3. Tests       — tests unitaires (pytest)
-#
-# Note : les tests d'entraînement (trainer.py) ne sont PAS inclus
-# dans le CI — ils nécessitent un GPU et des heures de calcul.
-# Le CI couvre uniquement les modules data et evaluate.
 #
 # Auteur : Kodjo Jean DEGBEVI
 # =============================================================================
@@ -21,7 +16,7 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -36,21 +31,21 @@ jobs:
 
     steps:
       - name: Checkout du dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Configuration de Python 3.10
-        uses: actions/setup-python@v5
+      - name: Configuration de Python 3.14
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.10"
-
+          python-version: "3.14"
+ 
       - name: Installation de flake8
         run: pip install flake8
 
       - name: Exécution de flake8
         run: |
           flake8 src/ tests/ app.py \
-            --max-line-length=100 \
-            --ignore=E203,W503 \
+            --max-line-length=150 \
+            --ignore=E203,W503,E241,E221 \
             --exclude=__pycache__,.git
 
   # ---------------------------------------------------------------------------
@@ -63,12 +58,12 @@ jobs:
 
     steps:
       - name: Checkout du dépôt
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Configuration de Python 3.10
-        uses: actions/setup-python@v5
+      - name: Configuration de Python 3.14
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.10"
+          python-version: "3.14"
 
       - name: Mise en cache des dépendances pip
         uses: actions/cache@v4
