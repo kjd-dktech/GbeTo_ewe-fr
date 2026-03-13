@@ -311,9 +311,9 @@ def build_interface(
         gr.Markdown(
             """
             ---
-            **Auteur** : Kodjo Jean DEGBEVI  
-            **Modèle** : `facebook/nllb-200-distilled-600M` fine-tuné  
-            **Données** : AfroLingu-MT (ACL 2024) + MAFAND (NAACL 2022)  
+            **Auteur** : Kodjo Jean DEGBEVI
+            **Modèle** : `facebook/nllb-200-distilled-600M` fine-tuné
+            **Données** : AfroLingu-MT (ACL 2024) + MAFAND (NAACL 2022)
             **Code** : [github.com/kjd-dktech/ewe-french_translator](https://github.com/kjd-dktech/ewe-french_translator)
             """
         )
@@ -344,8 +344,8 @@ def main() -> None:
 
     # Lancement
     interface.launch(
-        share=True,            # Génère un lien public temporaire (utile sur Colab)
-        server_name="0.0.0.0", # Accessible depuis l'extérieur (HuggingFace Spaces)
+        share=True,             # Génère un lien public temporaire (utile sur Colab)
+        server_name="0.0.0.0",  # Accessible depuis l'extérieur (HuggingFace Spaces)
         show_error=True,
     )
 

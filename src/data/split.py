@@ -129,13 +129,13 @@ def _log_split_stats(df: pd.DataFrame, name: str) -> None:
     dir_counts  = df["direction"].value_counts()
     orig_counts = df["origin"].value_counts()
 
-    logger.info(f"\n  ── {name.upper()} ({'─'*(40 - len(name))})")
+    logger.info(f"\n  ── {name.upper()} ({'─' * (40 - len(name))})")
     logger.info(f"  Total        : {len(df):,} paires")
-    logger.info(f"  Par direction:")
+    logger.info("  Par direction:")
     for direction, count in sorted(dir_counts.items()):
         pct = count / len(df) * 100
         logger.info(f"    {direction:<12} : {count:>6,}  ({pct:.1f}%)")
-    logger.info(f"  Par origine:")
+    logger.info("  Par origine:")
     for origin, count in sorted(orig_counts.items()):
         pct = count / len(df) * 100
         logger.info(f"    {origin:<12} : {count:>6,}  ({pct:.1f}%)")

@@ -165,8 +165,8 @@ def step_filter_length(df: pd.DataFrame) -> pd.DataFrame:
     tgt_len  = df["target"].apply(_token_count)
 
     mask = (
-        src_len.between(MIN_TOKENS, MAX_TOKENS) &
-        tgt_len.between(MIN_TOKENS, MAX_TOKENS)
+        src_len.between(MIN_TOKENS, MAX_TOKENS)
+        & tgt_len.between(MIN_TOKENS, MAX_TOKENS)
     )
     df = df[mask]
 
@@ -227,9 +227,9 @@ def filter_split(df_raw: pd.DataFrame, split: str) -> pd.DataFrame:
     Returns:
         DataFrame nettoyé
     """
-    logger.info(f"\n{'='*60}")
+    logger.info(f"\n{'=' * 60}")
     logger.info(f"FILTRAGE [{split.upper()}]  —  {len(df_raw):,} paires en entrée")
-    logger.info(f"{'='*60}")
+    logger.info(f"{'=' * 60}")
 
     df = df_raw.copy()
     df = step_normalize_unicode(df)

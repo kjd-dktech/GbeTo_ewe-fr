@@ -29,7 +29,6 @@ import logging
 import os
 import random
 import shutil
-import sys
 import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -369,8 +368,8 @@ def build_compute_metrics(tokenizer: AutoTokenizer):
             skip_special_tokens=True,
         )
 
-        decoded_preds  = [p.strip() for p in decoded_preds]
-        decoded_labels = [l.strip() for l in decoded_labels]
+        decoded_preds  = [predict.strip() for predict in decoded_preds]
+        decoded_labels = [lab.strip() for lab in decoded_labels]
 
         bleu = compute_bleu(decoded_preds, decoded_labels)
         chrf = compute_chrf(decoded_preds, decoded_labels)
@@ -666,8 +665,8 @@ class DriveCheckpointCallback(TrainerCallback):
         # Vérification arrivée sur Drive
         if not drive_zip.exists() or drive_zip.stat().st_size < 1_000_000:
             logger.error(
-                f"  [Drive CB] Zip Drive absent ou trop petit après copie "
-                f"— registre non mis à jour."
+                "  [Drive CB] Zip Drive absent ou trop petit après copie "
+                "— registre non mis à jour."
             )
             tmp_zip.unlink(missing_ok=True)
             return
@@ -696,7 +695,7 @@ class DriveCheckpointCallback(TrainerCallback):
         # ── 8. Rafraîchir le registre local depuis Drive ─────────────────────
         REGISTRY_LOCAL.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(str(drive_registry), str(REGISTRY_LOCAL))
-        logger.info(f"  [Drive CB] Registre local rafraîchi.")
+        logger.info("  [Drive CB] Registre local rafraîchi.")
 
         # ── 9. Nettoyage /tmp/ ───────────────────────────────────────────────
         tmp_zip.unlink(missing_ok=True)
@@ -755,7 +754,7 @@ class FinalModelCallback(TrainerCallback):
                 exist_ok=True,
                 token=token,
             )
-            logger.info(f"  Repo HF créé.")
+            logger.info("  Repo HF créé.")
 
     def on_train_end(
         self,
@@ -1054,7 +1053,6 @@ def train(config: TrainingConfig) -> None:
     if last_checkpoint is None:
         logger.info("\n>>> NOUVEAU DÉPART — aucun checkpoint valide trouvé.")
 
-
     # ------------------------------------------------------------------
     # 3. Chargement du modèle et tokenizer
     # ------------------------------------------------------------------
@@ -1104,7 +1102,7 @@ def train(config: TrainingConfig) -> None:
         model=model,
         padding=True,
         pad_to_multiple_of=8,    # Optimisation Tensor Cores (T4/A100)
-        label_pad_token_id=-100, # -100 ignoré dans le calcul de la loss
+        label_pad_token_id=-100,  # -100 ignoré dans le calcul de la loss
     )
 
     # ------------------------------------------------------------------
@@ -1189,7 +1187,7 @@ def train(config: TrainingConfig) -> None:
     # ------------------------------------------------------------------
     logger.info("\n>>> Début de l'entraînement ...")
     logger.info(
-        f"  Steps par epoch   : "
+        "  Steps par epoch   : "
         f"{len(train_dataset) // (config.per_device_train_batch_size * config.gradient_accumulation_steps)}"
     )
 
@@ -1224,13 +1222,13 @@ def train(config: TrainingConfig) -> None:
     final_chrf = eval_results.get("eval_chrf", 0.0)
     final_loss = eval_results.get("eval_loss", 0.0)
 
-    logger.info(f"\n{'='*65}")
+    logger.info(f"\n{'=' * 65}")
     logger.info("RÉSULTATS FINAUX")
-    logger.info(f"{'='*65}")
+    logger.info(f"{'=' * 65}")
     logger.info(f"  BLEU (val)  : {final_bleu:.2f}")
     logger.info(f"  chrF (val)  : {final_chrf:.2f}")
     logger.info(f"  Loss (val)  : {final_loss:.4f}")
-    logger.info(f"{'='*65}")
+    logger.info(f"{'=' * 65}")
 
     # ------------------------------------------------------------------
     # 10. Sauvegarde des métriques finales

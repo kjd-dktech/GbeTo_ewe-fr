@@ -1,6 +1,7 @@
 # GbeTo — Traducteur Éwé ↔ Français
 
-[![Python](https://img.shields.io/badge/python-blue.svg)](https://www.python.org/)
+[![CI](https://github.com/kjd-dktech/GbeTo_ewe-frh/actions/workflows/ci.yml/badge.svg)](https://github.com/kjd-dktech/GbeTo_ewe-fr/actions/workflows/ci.yml)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![HuggingFace](https://img.shields.io/badge/🤗-gbeto--ewe--french-yellow)](https://huggingface.co/kjd-dktech/gbeto-ewe-french)
 

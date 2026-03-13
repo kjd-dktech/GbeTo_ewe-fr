@@ -246,7 +246,7 @@ def merge_and_save(
     df_merged = pd.concat([df_afrolingu, df_mafand], ignore_index=True)
 
     # Statistiques globales
-    logger.info(f"\n{'='*60}")
+    logger.info(f"\n{'=' * 60}")
     logger.info(f"FUSION [{split.upper()}]")
     logger.info(f"  AfroLingu-MT : {len(df_afrolingu):>6,} paires")
     logger.info(f"  MAFAND       : {len(df_mafand):>6,} paires")
@@ -254,7 +254,7 @@ def merge_and_save(
     dir_counts = df_merged["direction"].value_counts()
     for direction, count in dir_counts.items():
         logger.info(f"    {direction} : {count:,}")
-    logger.info(f"{'='*60}\n")
+    logger.info(f"{'=' * 60}\n")
 
     # Sauvegarde du fichier fusionné (données brutes avant nettoyage)
     _save_csv(df_merged, output_dir / f"merged_{split}.csv")

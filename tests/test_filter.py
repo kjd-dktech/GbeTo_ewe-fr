@@ -22,8 +22,6 @@ import pytest
 from src.data.filter import (
     MIN_TOKENS,
     MAX_TOKENS,
-    MIN_RATIO,
-    MAX_RATIO,
     filter_split,
     step_deduplicate,
     step_filter_length,
