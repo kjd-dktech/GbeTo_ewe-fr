@@ -236,8 +236,6 @@ class TestEdgeCases:
 
         text_nfc = unicodedata.normalize("NFC", "Café du matin")
         text_nfd = unicodedata.normalize("NFD", "Café du matin")
-
         score_nfc = compute_bleu([text_nfc], [text_nfc])
         score_nfd = compute_bleu([text_nfd], [text_nfd])
-
         assert score_nfc == pytest.approx(score_nfd, abs=0.1)

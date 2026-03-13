@@ -21,9 +21,17 @@ L'éwé est une langue kwa parlée par environ 3 à 4 millions de personnes au T
 
 | Modèle | BLEU | chrF |
 |--------|------|------|
-| Baseline NLLB-600M (sans fine-tuning) | — | — |
-| GbeTo (fine-tuné) | — | — |
+| Baseline NLLB-600M (sans fine-tuning) | 13.41 | 33.11|
+| GbeTo | 16.70 | 37.19|
 
+
+<!--<u>`GbeTo`</u> :
+| Direction | BLEU | chrF |
+|--------|------|------|
+| ewe → fra | 16.05 | 39.47|
+| fra → ewe | 19.18 | 38.27|
+| global    | 17.73 | 38.97|
+-->
 ---
 
 ## Données

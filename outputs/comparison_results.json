@@ -1,0 +1,16 @@
+{
+  "baseline": {
+    "label": "Baseline NLLB",
+    "bleu": 13.4129,
+    "chrf": 33.1149,
+    "n": 200
+  },
+  "finetuned": {
+    "label": "Fine-tuné",
+    "bleu": 16.699,
+    "chrf": 37.1941,
+    "n": 200
+  },
+  "delta_bleu": 3.2861,
+  "delta_chrf": 4.0792
+}
