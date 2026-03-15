@@ -89,22 +89,26 @@ def load_model() -> tuple:
         model_path  = str(LOCAL_MODEL_PATH)
         model_label = "NLLB-600M fine-tuné éwé-français"
         is_finetuned = True
-    elif HF_MODEL_ID :
-        logger.warning(
-            f"Modèle fine-tuné local introuvable : {LOCAL_MODEL_PATH}\n"
-            f"Chargement du modèle de hugging face : {HF_MODEL_ID}"
+    elif HF_MODEL_ID:
+        logger.info(
+            f"Modèle fine-tuné local {LOCAL_MODEL_PATH} introuvable !\n"
+            f"Vérification de la disponibilité du modèle HF : {HF_MODEL_ID}"
         )
-        model_path   = HF_MODEL_ID
-        model_label  = "GbeTo_ewe-fr"
-        is_finetuned = True
-    else:
-        logger.warning(
-            f"Modèle fine-tuné introuvable.\n"
-            f"Chargement du base model : {BASELINE_MODEL}"
-        )
-        model_path   = BASELINE_MODEL
-        model_label  = "NLLB-200"
-        is_finetuned = False
+        try:
+            from huggingface_hub import model_info
+            model_info(HF_MODEL_ID, token=hf_token)
+            logger.info(f"Modèle HF trouvé : {HF_MODEL_ID}")
+            model_path   = HF_MODEL_ID
+            model_label  = "GbeTo_ewe-fr"
+            is_finetuned = True
+        except Exception:
+            logger.warning(
+                f"Modèle HF {HF_MODEL_ID} introuvable !\n"
+                f"Chargement du base model : {BASELINE_MODEL}"
+            )
+            model_path   = BASELINE_MODEL
+            model_label  = "NLLB-200"
+            is_finetuned = False
 
     tokenizer = AutoTokenizer.from_pretrained(
         model_path,
