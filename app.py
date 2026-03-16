@@ -1,17 +1,8 @@
 """
 Interface de démonstration Gradio pour le traducteur éwé ↔ français.
 
-Déploiement : HuggingFace Spaces (gratuit)
-Modèle      : outputs/checkpoints/best_model/ (fine-tuné)
-Fallback     : facebook/nllb-200-distilled-600M (baseline si pas de modèle local)
-
-Utilisation locale :
-    python app.py
-
-Déploiement HuggingFace Spaces :
-    - Pousser ce fichier + requirements.txt à la racine du Space
-    - Le modèle fine-tuné doit être uploadé sur HuggingFace Hub au préalable
-      (voir README.md pour les instructions)
+Déploiement : HuggingFace Spaces
+Modèle      : GbeTo_ewe-fr
 
 Auteur : Kodjo Jean DEGBEVI
 """
@@ -41,9 +32,12 @@ logger = logging.getLogger(__name__)
 # Constantes
 # ---------------------------------------------------------------------------
 # Chemin du modèle fine-tuné local
-LOCAL_MODEL_PATH = Path("outputs/checkpoints/best_model")
+LOCAL_MODEL_PATH = Path("outputs/final_model")
 
-# Modèle baseline HuggingFace (fallback si pas de modèle local)
+# Id hugging face de GbeTo
+HF_MODEL_ID = "kjd-dktech/gbeto-ewe-french"
+
+# Modèle baseline HuggingFace
 BASELINE_MODEL = "facebook/nllb-200-distilled-600M"
 
 # Tokens de langue NLLB
@@ -80,14 +74,14 @@ def load_model() -> tuple:
     Charge le modèle et le tokenizer.
 
     Priorité :
-        1. Modèle fine-tuné local (outputs/checkpoints/best_model/)
-        2. Modèle baseline HuggingFace (facebook/nllb-200-distilled-600M)
+        1. Modèle fine-tuné local (outputs/final_model)
+        2. Modèle fine-tuned de HuggingFace
 
     Returns:
         Tuple (tokenizer, model, model_label)
         model_label : description du modèle chargé (pour l'interface)
     """
-    hf_token = os.environ.get("HF_TOKEN")
+    hf_token = os.environ.get("HF_TOKEN_READ")
 
     # --- Tentative de chargement du modèle fine-tuné local ---
     if LOCAL_MODEL_PATH.exists():
@@ -95,14 +89,26 @@ def load_model() -> tuple:
         model_path  = str(LOCAL_MODEL_PATH)
         model_label = "NLLB-600M fine-tuné éwé-français"
         is_finetuned = True
-    else:
-        logger.warning(
-            f"Modèle fine-tuné introuvable : {LOCAL_MODEL_PATH}\n"
-            f"Chargement du modèle baseline : {BASELINE_MODEL}"
+    elif HF_MODEL_ID:
+        logger.info(
+            f"Modèle fine-tuné local {LOCAL_MODEL_PATH} introuvable !\n"
+            f"Vérification de la disponibilité du modèle HF : {HF_MODEL_ID}"
         )
-        model_path   = BASELINE_MODEL
-        model_label  = "NLLB-600M baseline (sans fine-tuning)"
-        is_finetuned = False
+        try:
+            from huggingface_hub import model_info
+            model_info(HF_MODEL_ID, token=hf_token)
+            logger.info(f"Modèle HF trouvé : {HF_MODEL_ID}")
+            model_path   = HF_MODEL_ID
+            model_label  = "GbeTo_ewe-fr"
+            is_finetuned = True
+        except Exception:
+            logger.warning(
+                f"Modèle HF {HF_MODEL_ID} introuvable !\n"
+                f"Chargement du base model : {BASELINE_MODEL}"
+            )
+            model_path   = BASELINE_MODEL
+            model_label  = "NLLB-200"
+            is_finetuned = False
 
     tokenizer = AutoTokenizer.from_pretrained(
         model_path,
@@ -111,7 +117,7 @@ def load_model() -> tuple:
 
     model = AutoModelForSeq2SeqLM.from_pretrained(
         model_path,
-        use_auth_token=hf_token,
+        token=hf_token,
     )
 
     # Mise sur GPU si disponible
@@ -223,14 +229,13 @@ def build_interface(
     )
 
     with gr.Blocks(
-        title="Traducteur Éwé ↔ Français",
-        theme=gr.themes.Soft(),
+        title="Traducteur Éwé ↔ Français"
     ) as interface:
 
         # --- En-tête ---
         gr.Markdown(
             """
-            # 🌍 Traducteur Éwé ↔ Français
+            # 🌍 GbeTo : Traducteur Éwé ↔ Français
             Traduction automatique neuronale basée sur
             [NLLB-200](https://huggingface.co/facebook/nllb-200-distilled-600M)
             (Meta AI, 2022), fine-tuné sur des corpus parallèles éwé-français
@@ -312,9 +317,9 @@ def build_interface(
             """
             ---
             **Auteur** : Kodjo Jean DEGBEVI
-            **Modèle** : `facebook/nllb-200-distilled-600M` fine-tuné
+            **Modèle** : `GbeTo_ewe-fr`
             **Données** : AfroLingu-MT (ACL 2024) + MAFAND (NAACL 2022)
-            **Code** : [github.com/kjd-dktech/ewe-french_translator](https://github.com/kjd-dktech/ewe-french_translator)
+            **Code** : [github.com/kjd-dktech/GbeTo_ewe-fr](https://github.com/kjd-dktech/GbeTo_ewe-fr)
             """
         )
 
@@ -344,9 +349,9 @@ def main() -> None:
 
     # Lancement
     interface.launch(
-        share=True,             # Génère un lien public temporaire (utile sur Colab)
-        server_name="0.0.0.0",  # Accessible depuis l'extérieur (HuggingFace Spaces)
+        server_name="0.0.0.0",
         show_error=True,
+        theme=gr.themes.Soft(),
     )
 
 
