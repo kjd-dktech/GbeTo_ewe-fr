@@ -1,3 +1,9 @@
+---
+title: GbeTo_-_Traducteur_w__Franais
+app_file: app.py
+sdk: gradio
+sdk_version: 6.8.0
+---
 # GbeTo — Traducteur Éwé ↔ Français
 
 [![CI](https://github.com/kjd-dktech/GbeTo_ewe-frh/actions/workflows/ci.yml/badge.svg)](https://github.com/kjd-dktech/GbeTo_ewe-fr/actions/workflows/ci.yml)

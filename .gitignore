@@ -1,13 +1,27 @@
-.ssh/
-*.env
-*.pyc
+# Environnement et pip
 ewefrnlpvenv/
-*tmp
 .pip_tmp
+*.env
+*cache/
+.ssh/
+
+# Données et docs
+data/
 docs/
 logs/
-checkpoints/
-final_model/
-data/raw/
-*cache/
+
+# Modèles et outputs lourds
+outputs/final_model/
+outputs/checkpoints/
+
+# Cache HuggingFace
+hf_cache/
+
+# WandB
 wandb/
+
+# Python
+__pycache__/
+*.pyc
+.env
+
