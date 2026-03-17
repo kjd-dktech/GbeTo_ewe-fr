@@ -22,6 +22,7 @@ wandb/
 
 # Python
 __pycache__/
+.ipynb_checkpoints/
 *.pyc
 .env
 

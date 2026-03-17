@@ -1,15 +1,11 @@
----
-title: GbeTo_-_Traducteur_w__Franais
-app_file: app.py
-sdk: gradio
-sdk_version: 6.8.0
----
+
 # GbeTo — Traducteur Éwé ↔ Français
 
 [![CI](https://github.com/kjd-dktech/GbeTo_ewe-frh/actions/workflows/ci.yml/badge.svg)](https://github.com/kjd-dktech/GbeTo_ewe-fr/actions/workflows/ci.yml)
 [![Python 3.14+](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![HuggingFace](https://img.shields.io/badge/🤗-gbeto--ewe--french-yellow)](https://huggingface.co/kjd-dktech/gbeto-ewe-french)
+[![Démo](https://img.shields.io/badge/🤗-gbeto--ewe--french--demo-yellow)](https://huggingface.co/spaces/kjd-dktech/gbeto-ewe-french-demo)
 
 Fine-tuning de [NLLB-200-distilled-600M](https://huggingface.co/facebook/nllb-200-distilled-600M) (Meta AI) pour la traduction bidirectionnelle éwé ↔ français. Projet personnel mené dans un double objectif : apprendre les pratiques du fine-tuning de modèles de traduction, et contribuer modestement à l'outillage NLP d'une langue peu dotée : l'**`ewe`**, *ma langue natale*.
 
@@ -71,7 +67,7 @@ Principaux hyperparamètres :
 | Beam search | 4 |
 | Epochs max | 10 |
 
-Le modèle est disponible sur HuggingFace : [kjd-dktech/gbeto-ewe-french](https://huggingface.co/kjd-dktech/gbeto-ewe-french).
+Le modèle est disponible sur HuggingFace : [kjd-dktech/gbeto-ewe-french](https://huggingface.co/kjd-dktech/gbeto-ewe-french).<br> Il est également accessible en démo sur HuggingFace Spaces [kjd-dktech/gbeto-ewe-french-demo](https://huggingface.co/spaces/kjd-dktech/gbeto-ewe-french-demo)
 
 ---
 
@@ -86,6 +82,7 @@ model = AutoModelForSeq2SeqLM.from_pretrained("kjd-dktech/gbeto-ewe-french")
 ```
 
 Pour reproduire l'entraînement, voir `notebooks/principal_book.ipynb`.
+
 ---
 
 ## Structure du projet
